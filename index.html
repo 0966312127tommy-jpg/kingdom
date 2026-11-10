@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>王國領地爭霸賽</title>
+<style>
+:root{--canvas:#eefbf4;--paper:#fff;--powder:#dff7ed;--sky:#52b8d8;--indigo:#7a63c7;--primary:#c93e62;--primary-dark:#a62e4d;--green:#2e7d69;--amber:#7a5700;--orange:#f08b3e;--yellow:#f5c84c;--ink:#263b3a;--soft:#4f6965;--muted:#71857f;--line:#cfe5dc;--glass:rgba(255,255,255,.86);--shadow:0 18px 45px rgba(42,109,91,.14)}
+*{box-sizing:border-box}
+input,select,textarea{max-width:100%}
+body{margin:0;min-height:100vh;font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;color:var(--ink);background:radial-gradient(circle at 18px 18px,rgba(201,62,98,.09) 0 3px,transparent 4px) 0 0/46px 46px,radial-gradient(circle at 90% 12%,rgba(82,184,216,.25),transparent 28%),linear-gradient(135deg,#e5fbf1,#fff7dc 55%,#f5eaff)}
+button,input,select,textarea{font:inherit;max-width:100%}
+button{border:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #52b8d8;outline-offset:3px}
+.wrap{width:min(1180px,calc(100% - 28px));margin:auto;padding:22px 0 50px}
+.topbar,.panel,.hero,.student-card{background:var(--glass);border:2px solid rgba(255,255,255,.9);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-radius:28px;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:950}.logo{display:grid;place-items:center;width:44px;height:44px;border-radius:16px;color:white;background:linear-gradient(135deg,var(--primary-dark),var(--primary));font-size:24px}
+.mode-label{padding:8px 13px;border-radius:99px;background:var(--primary-soft);color:var(--primary-dark);font-weight:900}
+.hero{position:relative;overflow:hidden;padding:clamp(22px,4vw,42px);border-radius:34px;margin-bottom:20px;background:linear-gradient(130deg,rgba(255,255,255,.94),rgba(255,255,255,.65)),linear-gradient(120deg,#ffe3ea,#fff0b5,#dff7ed)}
+.hero:after{content:"👑";position:absolute;right:5%;top:15%;font-size:clamp(55px,10vw,105px);opacity:.22;transform:rotate(12deg)}
+h1{font-size:clamp(30px,5vw,54px);line-height:1.15;margin:0 0 10px}.hero p{max-width:720px;color:var(--soft);line-height:1.8;margin:0}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}
+.btn{padding:11px 16px;border-radius:99px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-weight:900;box-shadow:0 9px 18px #c93e6233}
+.btn.alt{background:#fff;color:var(--primary-dark);border:1px solid var(--line);box-shadow:none}.btn.green{background:linear-gradient(135deg,#398d75,#246b59)}.btn.warn{background:linear-gradient(135deg,#ed9a43,#c96b2b)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.panel{padding:20px;border-radius:28px;margin-bottom:18px}.panel h2{margin:0 0 7px;font-size:23px}.muted{color:var(--muted);line-height:1.65}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:grid;gap:6px;margin:10px 0;font-weight:800}.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:white;color:var(--ink)}
+.hidden{display:none!important}.notice{padding:12px 14px;border-radius:16px;background:#fff0b5;color:#765400;font-weight:800;margin:12px 0}.error{background:#ffe4e4;color:#a52d2d}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.stat{padding:14px;border-radius:20px;background:#fff;text-align:center;border:1px solid var(--line)}.stat b{display:block;font-size:28px;color:var(--primary-dark)}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:11px}
+.student-card{border-radius:21px;padding:13px;background:#fff;box-shadow:0 8px 18px rgba(42,109,91,.09);border:1px solid var(--line);min-width:0}
+.student-head{display:flex;align-items:center;gap:9px}.avatar{width:38px;height:38px;border-radius:14px;display:grid;place-items:center;color:white;font-size:20px;font-weight:900;flex:none}
+.student-card strong{font-size:17px}.land-count{font-size:24px;font-weight:950;color:var(--primary-dark);margin:9px 0 2px}.tiny{font-size:12px;color:var(--muted)}
+.map{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin-top:15px}
+.tile{aspect-ratio:1;border-radius:9px;background:#fff;border:1px solid #d8e8df;display:grid;place-items:center;font-size:clamp(11px,2vw,18px);font-weight:900;min-width:0;overflow:hidden}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.legend span{display:flex;align-items:center;gap:6px;background:#fff;padding:6px 10px;border-radius:99px;border:1px solid var(--line);font-size:13px}
+.dot{width:13px;height:13px;border-radius:5px;display:inline-block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.toolbar>*{flex:1;min-width:140px}
+.log{display:grid;gap:8px;max-height:250px;overflow:auto}.logrow{padding:10px 12px;border-radius:13px;background:#f7fffb;border:1px solid var(--line);font-size:14px}
+.reward-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border-radius:14px;background:#fff;border:1px solid var(--line);margin:7px 0}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:12px}
+@media(max-width:680px){.wrap{width:calc(100% - 18px);padding-top:12px}.topbar{border-radius:20px}.grid2{grid-template-columns:1fr}.stats{gap:6px}.stat{padding:10px 5px}.stat b{font-size:23px}.panel{padding:15px;border-radius:22px}.map{gap:3px}.tile{border-radius:6px}.hero:after{right:3%;top:10%;opacity:.14}}
+@media(max-width:380px){.student-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{font-size:10px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="topbar"><div class="brand"><div class="logo">🏰</div><span>王國領地爭霸賽</span></div><span id="modeBadge" class="mode-label">選擇使用端</span></header>
+<section class="hero">
+<h1>勇者大臣，<br><span style="color:#c93e62">來爭奪王國領地！</span></h1>
+<p>每一格都是努力累積的領地。國王可以頒發或收回領地，大臣也能用領地兌換獎勵。一起讓王國地圖變得繽紛吧！</p>
+<div class="actions"><button class="btn" id="studentModeBtn">🗺️ 學生端地圖</button><button class="btn alt" id="teacherModeBtn">👑 國王／老師端</button></div>
+</section>
+
+<section id="setupPanel" class="panel">
+<h2>🌱 建立班級王國</h2><p class="muted">第一次使用請設定班級人數與老師密碼。學生以座號辨識，不需要輸入姓名。</p>
+<div class="grid2">
+<label class="field">班級人數（1–60）<input id="classSize" type="number" min="1" max="60" value="25"></label>
+<label class="field">設定老師密碼（至少 4 碼）<input id="newPin" type="password" inputmode="numeric" minlength="4" placeholder="請設定密碼"></label>
+</div><button class="btn" id="createBtn">✨ 建立王國</button><div id="setupMsg" class="notice hidden" role="status"></div>
+</section>
+
+<section id="studentView" class="hidden">
+<div class="panel"><h2>🗺️ 王國領地全景</h2><p class="muted">每格代表一塊領地，格子上的符號代表目前的主人。顏色與符號可協助辨認各位大臣。</p>
+<div class="stats"><div class="stat"><b id="totalTiles">0</b><span>已分配領地</span></div><div class="stat"><b id="studentCount">0</b><span>大臣人數</span></div><div class="stat"><b id="rewardTarget">10</b><span>兌換門檻</span></div></div>
+<div id="map" class="map" aria-label="領地地圖"></div><div id="legend" class="legend"></div></div>
+<div class="panel"><h2>🧑‍⚖️ 大臣排行榜</h2><div id="studentCards" class="student-grid"></div></div>
+<div class="panel"><h2>🎁 王國獎勵清單</h2><div id="studentRewards"></div><p class="muted">兌換請洽國王老師，由老師端操作。</p></div>
+</section>
+
+<section id="teacherView" class="hidden">
+<div id="loginPanel" class="panel"><h2>🔐 國王登入</h2><p class="muted">請輸入建立王國時設定的老師密碼。</p><label class="field">老師密碼<input id="pinInput" type="password" inputmode="numeric" placeholder="輸入密碼"></label><button class="btn" id="loginBtn">登入管理</button><div id="loginMsg" class="notice error hidden" role="alert"></div></div>
+<div id="adminPanel" class="hidden">
+<div class="panel"><h2>👑 國王管理大廳</h2><p class="muted">選擇大臣並調整領地。扣除時不可超過該大臣目前擁有的格數。</p>
+<div class="toolbar">
+<label class="field">選擇大臣<select id="studentSelect"></select></label>
+<label class="field">領地格數<input id="amount" type="number" min="1" max="600" value="1"></label>
+<label class="field">操作原因<input id="reason" maxlength="60" placeholder="例如：課堂合作"></label>
+</div><div class="actions"><button class="btn green" id="awardBtn">＋ 頒發領地</button><button class="btn warn" id="takeBtn">－ 收回領地</button></div>
+</div>
+<div class="panel"><h2>🎁 獎勵兌換設定</h2><div class="grid2"><label class="field">獎品名稱<input id="rewardName" maxlength="30" placeholder="例如：優先選座位"></label><label class="field">所需領地格數<input id="rewardCost" type="number" min="1" max="600" value="10"></label></div><button class="btn" id="addRewardBtn">新增獎品</button><div id="adminRewards"></div></div>
+<div class="panel"><h2>🎟️ 幫大臣兌換獎勵</h2><div class="toolbar"><label class="field">大臣<select id="redeemStudent"></select></label><label class="field">兌換獎品<select id="redeemReward"></select></label></div><button class="btn green" id="redeemBtn">確認兌換</button></div>
+<div class="panel"><h2>📜 國王紀錄</h2><div class="actions"><button class="btn alt" id="exportBtn">下載備份 JSON</button><button class="btn alt" id="logoutBtn">登出老師端</button><button class="btn warn" id="resetBtn">重設全班領地</button></div><div id="history" class="log" style="margin-top:12px"></div></div>
+</div>
+</section>
+<footer>資料僅儲存在目前瀏覽器，不會上傳。請定期下載備份；清除瀏覽器資料可能使紀錄消失。</footer>
+</main>
+<script>
+"use strict";
+// 本機資料模型：只保存座號、領地、獎品與操作紀錄。
+const $=id=>document.getElementById(id);
+const COLORS=["#c93e62","#2e7d69","#52b8d8","#7a63c7","#f08b3e","#d39b16","#3977a8","#bd6b9b","#638b43","#8b6bba"];
+const SIGNS=["★","●","▲","◆","✿","✦","♥","☀","☘","✚"];
+const KEY="kingdomTerritoryGameV1";
+let data=null,teacherUnlocked=false;
+function blank(n,pin){return {pin,students:Array.from({length:n},(_,i)=>({id:i+1,land:0})),rewards:[],history:[],target:10};}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.students)&&Array.isArray(d.rewards)&&Array.isArray(d.history))data=d;}}catch(e){data=null;}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){alert("瀏覽器儲存空間不足，請先下載備份。");}}
+function msg(id,text){$(id).textContent=text;$(id).classList.remove("hidden");}
+function showMode(mode){$("setupPanel").classList.toggle("hidden",!!data);$("studentView").classList.toggle("hidden",mode!=="student"||!data);$("teacherView").classList.toggle("hidden",mode!=="teacher"||!data);$("modeBadge").textContent=mode==="student"?"學生端地圖":mode==="teacher"?"國王老師端":"建立班級";if(mode==="student"&&data)renderStudent();if(mode==="teacher"&&data)renderTeacher();}
+function log(text){data.history.unshift({text,at:new Date().toLocaleString("zh-TW")});data.history=data.history.slice(0,150);save();}
+function create(){const n=Number($("classSize").value),pin=$("newPin").value.trim();if(!Number.isInteger(n)||n<1||n>60){msg("setupMsg","請輸入 1 到 60 的整數人數。");return;}if(pin.length<4){msg("setupMsg","老師密碼至少需要 4 碼。");return;}if(!confirm("建立新王國？這會取代目前瀏覽器內的舊資料。"))return;data=blank(n,pin);save();teacherUnlocked=true;renderTeacher();showMode("teacher");}
+function studentName(s){return "第 "+s.id+" 號大臣";}
+function renderStudent(){
+ const total=data.students.reduce((a,s)=>a+s.land,0);$("totalTiles").textContent=total;$("studentCount").textContent=data.students.length;$("rewardTarget").textContent=data.target;
+ const owners=[];data.students.forEach(s=>{for(let i=0;i<s.land;i++)owners.push(s);});
+ // 地圖最多顯示 300 格，避免大量領地拖慢手機；統計仍顯示完整數量。
+ const visible=owners.slice(0,300);$("map").innerHTML=visible.length?visible.map(s=>`<div class="tile" title="${studentName(s)}" style="background:${COLORS[(s.id-1)%COLORS.length]}22;border-color:${COLORS[(s.id-1)%COLORS.length]}">${SIGNS[(s.id-1)%SIGNS.length]}</div>`).join(""):'<div class="muted" style="grid-column:1/-1;text-align:center;padding:20px">王國還沒有領地，等待國王頒發第一塊領地！</div>';
+ $("legend").innerHTML=data.students.map(s=>`<span><i class="dot" style="background:${COLORS[(s.id-1)%COLORS.length]}"></i>${SIGNS[(s.id-1)%SIGNS.length]} ${s.id} 號</span>`).join("");
+ $("studentCards").innerHTML=[...data.students].sort((a,b)=>b.land-a.land||a.id-b.id).map(s=>`<article class="student-card"><div class="student-head"><div class="avatar" style="background:${COLORS[(s.id-1)%COLORS.length]}">${SIGNS[(s.id-1)%SIGNS.length]}</div><strong>${studentName(s)}</strong></div><div class="land-count">${s.land} 格領地</div><div class="tiny">距離兌換門檻：${Math.max(0,data.target-s.land%data.target)} 格</div></article>`).join("");
+ $("studentRewards").innerHTML=data.rewards.length?data.rewards.map(r=>`<div class="reward-row"><strong>🎁 ${escapeHtml(r.name)}</strong><span>${r.cost} 格</span></div>`).join(""):'<p class="muted">老師尚未設定獎品。</p>';
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function fillSelect(id){$(id).innerHTML=data.students.map(s=>`<option value="${s.id}">${studentName(s)}（${s.land} 格）</option>`).join("");}
+function renderTeacher(){
+ fillSelect("studentSelect");fillSelect("redeemStudent");
+ $("adminRewards").innerHTML=data.rewards.length?data.rewards.map((r,i)=>`<div class="reward-row"><span>🎁 ${escapeHtml(r.name)}｜${r.cost} 格</span><button class="btn alt" data-remove="${i}" type="button">刪除</button></div>`).join(""):'<p class="muted">尚未新增獎品。</p>';
+ $("redeemReward").innerHTML=data.rewards.map((r,i)=>`<option value="${i}">${escapeHtml(r.name)}（${r.cost} 格）</option>`).join("");
+ $("history").innerHTML=data.history.length?data.history.map(h=>`<div class="logrow">${escapeHtml(h.at)}｜${escapeHtml(h.text)}</div>`).join(""):'<p class="muted">目前沒有操作紀錄。</p>';
+}
+function adjust(delta){const id=Number($("studentSelect").value),s=data.students.find(x=>x.id===id),n=Number($("amount").value),reason=$("reason").value.trim()||"未填寫原因";if(!s||!Number.isInteger(n)||n<1||n>600){alert("請輸入 1 到 600 的整數格數。");return;}if(delta<0&&s.land<n){alert("領地不足，無法收回這麼多格。");return;}s.land+=delta*n;log(`${studentName(s)} ${delta>0?"獲得":"失去"} ${n} 格（${reason}），目前 ${s.land} 格`);renderTeacher();}
+function addReward(){const name=$("rewardName").value.trim(),cost=Number($("rewardCost").value);if(!name||!Number.isInteger(cost)||cost<1||cost>600){alert("請輸入獎品名稱及 1 到 600 的整數格數。");return;}data.rewards.push({name,cost});$("rewardName").value="";log(`新增獎品：${name}（${cost} 格）`);renderTeacher();}
+function redeem(){const s=data.students.find(x=>x.id===Number($("redeemStudent").value)),r=data.rewards[Number($("redeemReward").value)];if(!s||!r){alert("請先設定獎品並選擇大臣。");return;}if(s.land<r.cost){alert(`${studentName(s)} 的領地不足，需要 ${r.cost} 格，目前有 ${s.land} 格。`);return;}if(!confirm(`確定讓${studentName(s)}兌換「${r.name}」並扣除 ${r.cost} 格嗎？`))return;s.land-=r.cost;log(`${studentName(s)} 兌換「${r.name}」，扣除 ${r.cost} 格，剩餘 ${s.land} 格`);renderTeacher();}
+$("createBtn").addEventListener("click",create);
+$("studentModeBtn").addEventListener("click",()=>{if(!data){showMode("student");msg("setupMsg","請先建立班級王國，再開啟學生地圖。");return;}showMode("student");});
+$("teacherModeBtn").addEventListener("click",()=>{if(!data){showMode("teacher");msg("setupMsg","請先建立班級王國並設定老師密碼。");return;}showMode("teacher");});
+$("loginBtn").addEventListener("click",()=>{if($("pinInput").value===data.pin){teacherUnlocked=true;$("loginPanel").classList.add("hidden");$("adminPanel").classList.remove("hidden");renderTeacher();}else msg("loginMsg","密碼不正確，請再試一次。");});
+$("awardBtn").addEventListener("click",()=>adjust(1));$("takeBtn").addEventListener("click",()=>adjust(-1));$("addRewardBtn").addEventListener("click",addReward);$("redeemBtn").addEventListener("click",redeem);
+$("adminRewards").addEventListener("click",e=>{const b=e.target.closest("[data-remove]");if(!b)return;const i=Number(b.dataset.remove),r=data.rewards[i];if(confirm(`確定刪除獎品「${r.name}」？`)){data.rewards.splice(i,1);log(`刪除獎品：${r.name}`);renderTeacher();}});
+$("logoutBtn").addEventListener("click",()=>{teacherUnlocked=false;$("adminPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");$("pinInput").value="";});
+$("resetBtn").addEventListener("click",()=>{if(!confirm("確定將全班所有領地歸零？此操作無法復原，建議先下載備份。"))return;data.students.forEach(s=>s.land=0);log("國王將全班領地重設為 0");renderTeacher();});
+$("exportBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="kingdom_backup.json";a.click();URL.revokeObjectURL(url);});
+load();if(data){$("setupPanel").classList.add("hidden");showMode("student");}else showMode("setup");
+</script>
+</body>
+</html>
